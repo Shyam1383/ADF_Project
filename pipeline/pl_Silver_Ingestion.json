@@ -1,0 +1,45 @@
+{
+	"name": "pl_Silver_Ingestion",
+	"properties": {
+		"activities": [
+			{
+				"name": "SilverDataFlow",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_transformations",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"DimAirline": {
+								"SourceFileName": "DimAirline.csv"
+							},
+							"DimFlight": {
+								"SourceFileName": "DimFlight.csv"
+							},
+							"DimPassenger": {
+								"SourceFileName": "DimPassenger.csv"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T14:06:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
