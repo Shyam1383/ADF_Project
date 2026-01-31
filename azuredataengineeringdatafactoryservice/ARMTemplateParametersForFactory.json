@@ -5,7 +5,16 @@
 		"factoryName": {
 			"value": "azuredataengineeringdatafactoryservice"
 		},
+		"ls_EMR_accountKey": {
+			"value": ""
+		},
 		"ls_datalake_accountKey": {
+			"value": ""
+		},
+		"ls_deltalake_accessToken": {
+			"value": ""
+		},
+		"ls_emr_sql_password": {
 			"value": ""
 		},
 		"ls_onprem_file_password": {
@@ -14,11 +23,23 @@
 		"ls_sql_password": {
 			"value": ""
 		},
+		"ls_EMR_properties_typeProperties_url": {
+			"value": "https://azuredataengineerstorage.dfs.core.windows.net/"
+		},
 		"ls_Github_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/"
 		},
 		"ls_datalake_properties_typeProperties_url": {
 			"value": "https://azuredataengineerstorage.dfs.core.windows.net/"
+		},
+		"ls_emr_sql_properties_typeProperties_server": {
+			"value": "healthcarehospitalemr.database.windows.net"
+		},
+		"ls_emr_sql_properties_typeProperties_database": {
+			"value": "EMR"
+		},
+		"ls_emr_sql_properties_typeProperties_userName": {
+			"value": "hospitaladmin"
 		},
 		"ls_onprem_file_properties_typeProperties_host": {
 			"value": "C:\\Azure_ADF_Project"
