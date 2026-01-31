@@ -413,7 +413,8 @@
 					"location": {
 						"type": "AzureBlobFSLocation",
 						"fileName": "load_config.csv",
-						"fileSystem": "config"
+						"folderPath": "config",
+						"fileSystem": "bronze"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",

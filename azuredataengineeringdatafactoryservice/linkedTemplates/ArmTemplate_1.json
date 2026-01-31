@@ -601,6 +601,8 @@
 											{
 												"name": "insert_load_logs2",
 												"type": "Lookup",
+												"state": "Inactive",
+												"onInactiveMarkAs": "Succeeded",
 												"dependsOn": [
 													{
 														"activity": "cp_full_load",
@@ -621,7 +623,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "@concat(\n  'INSERT INTO dbo.load_logs ',\n  '(tablename, numberofrowscopied, watermarkcolumnname, loaddate) ',\n  'VALUES (',\n  '''', item().tablename, ''', ',\n  activity('cp_full_load').output.rowsCopied, ', ',\n  '''', item().watermark, ''', ',\n  'SYSDATETIME()',\n  ');'\n)",
+															"value": "@concat(\n  'INSERT INTO dbo.load_logs ',\n  '(tablename, numberofrowscopied, watermarkcolumnname, loaddate) ',\n  'VALUES (',\n  '''', item().tablename, ''', ',\n  activity('cp_full_load').output.rowsCopied, ', ',\n  if(\n    equals(item().watermark, null),\n    'NULL',\n    concat('''', item().watermark, '''')\n  ),\n  ', SYSDATETIME()',\n  ');'\n)\n",
 															"type": "Expression"
 														},
 														"queryTimeout": "02:00:00",
@@ -638,6 +640,56 @@
 															}
 														}
 													}
+												}
+											},
+											{
+												"name": "Stored procedure2",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "cp_full_load",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[[dbo].[sp_insert_load_logs]",
+													"storedProcedureParameters": {
+														"tableName": {
+															"value": {
+																"value": "@item().tableName",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"numberofrowscopied": {
+															"value": {
+																"value": "@activity('cp_full_load').output.rowsCopied",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"@watermarkcolumnname": {
+															"value": {
+																"value": "null",
+																"type": "Expression"
+															},
+															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "ls_emr_sql",
+													"type": "LinkedServiceReference"
 												}
 											}
 										],
@@ -665,7 +717,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "@concat(\n  'SELECT *, FROM ',\n  item().schemaname, '.', item().tablename,\n  ' WHERE ',\n  item().watermark,\n  ' > ''',\n  activity('Fetch_logs').output.firstRow.last_fetched_date,\n  ''''\n)\n",
+															"value": "@concat(\n  'SELECT * FROM ',\n  item().schemaname, '.', item().tablename,\n  ' WHERE ',\n  item().watermark,\n  ' > ''',\n  activity('Fetch_logs').output.firstRow.last_fetched_date,\n  ''''\n)\n",
 															"type": "Expression"
 														},
 														"queryTimeout": "00:30:00",
@@ -775,6 +827,8 @@
 											{
 												"name": "insert_load_logs1",
 												"type": "Lookup",
+												"state": "Inactive",
+												"onInactiveMarkAs": "Succeeded",
 												"dependsOn": [
 													{
 														"activity": "cp_incremental",
@@ -795,7 +849,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "@concat(\n  'INSERT INTO dbo.load_logs ',\n  '(tablename, numberofrowscopied, watermarkcolumnname, loaddate) ',\n  'VALUES (',\n  '''', item().tablename, ''', ',\n  activity('cp_incremental').output.rowsCopied, ', ',\n  '''', item().watermark, ''', ',\n  'SYSDATETIME()',\n  ');'\n)",
+															"value": "@concat(\n  'INSERT INTO dbo.load_logs ',\n  '(tablename, numberofrowscopied, watermarkcolumnname, loaddate) ',\n  'VALUES (',\n  '''', item().tablename, ''', ',\n  activity('cp_incremental').output.rowsCopied, ', ',\n  concat('''', item().watermark, ''''),\n  ', SYSDATETIME()',\n  ');'\n)\n",
 															"type": "Expression"
 														},
 														"queryTimeout": "02:00:00",
@@ -810,6 +864,56 @@
 														}
 													},
 													"firstRowOnly": false
+												}
+											},
+											{
+												"name": "Stored procedure1",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "cp_incremental",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[[dbo].[sp_insert_load_logs]",
+													"storedProcedureParameters": {
+														"tablename ": {
+															"value": {
+																"value": "@item().tableName",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"numberofrowscopied ": {
+															"value": {
+																"value": "@activity('cp_incremental').output.rowsCopied",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"watermarkcolumnname ": {
+															"value": {
+																"value": "@item().watermark",
+																"type": "Expression"
+															},
+															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "ls_emr_sql",
+													"type": "LinkedServiceReference"
 												}
 											}
 										]
