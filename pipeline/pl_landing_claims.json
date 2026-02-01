@@ -30,6 +30,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -120,7 +121,7 @@
 										"containerName": "bronze",
 										"directoryName": "claims",
 										"fileName": {
-											"value": "@activity('get_meta_claims').output.itemName",
+											"value": "split(activity('get_meta_claims').output.itemName, '.')[0]",
 											"type": "Expression"
 										}
 									}

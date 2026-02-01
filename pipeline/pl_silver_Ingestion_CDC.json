@@ -1,0 +1,28 @@
+{
+	"name": "pl_silver_Ingestion_CDC",
+	"properties": {
+		"activities": [
+			{
+				"name": "Notebook_SCD_CDC",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/arunmandle8317@gmail.com/HealthCare/Silver_CDC"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
