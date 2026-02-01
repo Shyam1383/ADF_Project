@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_EMR'"
 		},
+		"ls_databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_databricks'"
+		},
 		"ls_datalake_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_datalake'"
@@ -34,6 +38,10 @@
 		"ls_Github_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://raw.githubusercontent.com/"
+		},
+		"ls_databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0201-151926-qx4ktaqq"
 		},
 		"ls_datalake_properties_typeProperties_url": {
 			"type": "string",
@@ -96,6 +104,24 @@
 					"url": "[parameters('ls_Github_properties_typeProperties_url')]",
 					"enableServerCertificateValidation": true,
 					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_databricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7405607101562799.19.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('ls_databricks_accessToken')]"
+					},
+					"existingClusterId": "[parameters('ls_databricks_properties_typeProperties_existingClusterId')]"
 				}
 			},
 			"dependsOn": []
@@ -188,6 +214,42 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_silver_Ingestion_CDC')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook_SCD_CDC",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/arunmandle8317@gmail.com/HealthCare/Silver_CDC"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ds_API_Sink')]",
@@ -428,6 +490,55 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_landing')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_EMR",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"containerName": {
+						"type": "String"
+					},
+					"folderName": {
+						"type": "String"
+					},
+					"fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().fileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().folderName",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().containerName",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_EMR')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_lookUp')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -472,136 +583,6 @@
 					}
 				},
 				"schema": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_silver_SQL_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_datalake",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "sql",
-						"fileSystem": "bronge"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": [
-					{
-						"name": "booking_id",
-						"type": "INT32"
-					},
-					{
-						"name": "passenger_id",
-						"type": "INT32"
-					},
-					{
-						"name": "flight_id",
-						"type": "INT32"
-					},
-					{
-						"name": "airline_id",
-						"type": "INT32"
-					},
-					{
-						"name": "origin_airport_id",
-						"type": "INT32"
-					},
-					{
-						"name": "destination_airport_id",
-						"type": "INT32"
-					},
-					{
-						"name": "booking_date",
-						"type": "DATE"
-					},
-					{
-						"name": "ticket_cost",
-						"type": "DECIMAL",
-						"precision": 10,
-						"scale": 2
-					},
-					{
-						"name": "flight_duration_mins",
-						"type": "INT32"
-					},
-					{
-						"name": "checkin_status",
-						"type": "UTF8"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_silver_onprem_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_datalake",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"SourceFileName": {
-						"type": "String"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().SourceFileName",
-							"type": "Expression"
-						},
-						"folderPath": "onprem",
-						"fileSystem": "bronge"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sql_datalake')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_datalake",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "sql",
-						"fileSystem": "bronge"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"

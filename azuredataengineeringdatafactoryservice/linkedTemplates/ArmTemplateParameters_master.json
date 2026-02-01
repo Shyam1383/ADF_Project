@@ -8,6 +8,9 @@
 		"ls_EMR_accountKey": {
 			"value": ""
 		},
+		"ls_databricks_accessToken": {
+			"value": ""
+		},
 		"ls_datalake_accountKey": {
 			"value": ""
 		},
@@ -28,6 +31,9 @@
 		},
 		"ls_Github_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/"
+		},
+		"ls_databricks_properties_typeProperties_existingClusterId": {
+			"value": "0201-151926-qx4ktaqq"
 		},
 		"ls_datalake_properties_typeProperties_url": {
 			"value": "https://azuredataengineerstorage.dfs.core.windows.net/"
@@ -55,6 +61,9 @@
 		},
 		"ls_sql_properties_typeProperties_userName": {
 			"value": "arun"
+		},
+		"trigger_storage_claims_properties_typeProperties_scope": {
+			"value": "/subscriptions/328e842b-adbc-469a-b930-0108c43c5da4/resourceGroups/azuredataengineer/providers/Microsoft.Storage/storageAccounts/azuredataengineerstorage"
 		},
 		"containerUri": {
 			"value": ""
