@@ -1,5 +1,5 @@
 {
-	"name": "pl_OnPremSQL",
+	"name": "pl_On-Prem_EMR",
 	"properties": {
 		"activities": [
 			{
@@ -58,7 +58,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@contains(toLower(item().loadtype), 'incremental')\r\n",
+									"value": "@contains(toLower(item().loadtype), 'incremental')\n",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
@@ -138,14 +138,7 @@
 										"type": "Lookup",
 										"state": "Inactive",
 										"onInactiveMarkAs": "Succeeded",
-										"dependsOn": [
-											{
-												"activity": "cp_full_load",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
+										"dependsOn": [],
 										"policy": {
 											"timeout": "0.12:00:00",
 											"retry": 0,
@@ -199,23 +192,23 @@
 										"typeProperties": {
 											"storedProcedureName": "[dbo].[sp_insert_load_logs]",
 											"storedProcedureParameters": {
-												"tableName": {
-													"value": {
-														"value": "@item().tableName",
-														"type": "Expression"
-													},
-													"type": "String"
-												},
 												"numberofrowscopied": {
 													"value": {
 														"value": "@activity('cp_full_load').output.rowsCopied",
 														"type": "Expression"
 													},
-													"type": "Int64"
+													"type": "Int32"
 												},
-												"@watermarkcolumnname": {
+												"tablename": {
 													"value": {
-														"value": "null",
+														"value": "@item().tablename",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"watermarkcolumnname": {
+													"value": {
+														"value": "@item().watermark",
 														"type": "Expression"
 													},
 													"type": "String"
@@ -360,48 +353,6 @@
 										}
 									},
 									{
-										"name": "insert_load_logs1",
-										"type": "Lookup",
-										"state": "Inactive",
-										"onInactiveMarkAs": "Succeeded",
-										"dependsOn": [
-											{
-												"activity": "cp_incremental",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"timeout": "0.12:00:00",
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"source": {
-												"type": "AzureSqlSource",
-												"sqlReaderQuery": {
-													"value": "@concat(\n  'INSERT INTO dbo.load_logs ',\n  '(tablename, numberofrowscopied, watermarkcolumnname, loaddate) ',\n  'VALUES (',\n  '''', item().tablename, ''', ',\n  activity('cp_incremental').output.rowsCopied, ', ',\n  concat('''', item().watermark, ''''),\n  ', SYSDATETIME()',\n  ');'\n)\n",
-													"type": "Expression"
-												},
-												"queryTimeout": "02:00:00",
-												"partitionOption": "None"
-											},
-											"dataset": {
-												"referenceName": "ds_AzureSQL",
-												"type": "DatasetReference",
-												"parameters": {
-													"schemaName": "dbo",
-													"tableName": "load_logs"
-												}
-											},
-											"firstRowOnly": false
-										}
-									},
-									{
 										"name": "Stored procedure1",
 										"type": "SqlServerStoredProcedure",
 										"dependsOn": [
@@ -423,21 +374,21 @@
 										"typeProperties": {
 											"storedProcedureName": "[dbo].[sp_insert_load_logs]",
 											"storedProcedureParameters": {
-												"tablename ": {
-													"value": {
-														"value": "@item().tableName",
-														"type": "Expression"
-													},
-													"type": "String"
-												},
-												"numberofrowscopied ": {
+												"numberofrowscopied": {
 													"value": {
 														"value": "@activity('cp_incremental').output.rowsCopied",
 														"type": "Expression"
 													},
-													"type": "Int64"
+													"type": "Int32"
 												},
-												"watermarkcolumnname ": {
+												"tablename": {
+													"value": {
+														"value": "@item().tablename",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"watermarkcolumnname": {
 													"value": {
 														"value": "@item().watermark",
 														"type": "Expression"
