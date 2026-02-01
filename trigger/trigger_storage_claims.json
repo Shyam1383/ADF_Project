@@ -1,0 +1,24 @@
+{
+	"name": "trigger_storage_claims",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_landing_claims",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/landing/blobs/claims/claims.csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/328e842b-adbc-469a-b930-0108c43c5da4/resourceGroups/azuredataengineer/providers/Microsoft.Storage/storageAccounts/azuredataengineerstorage",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

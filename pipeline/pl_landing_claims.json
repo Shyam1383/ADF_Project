@@ -1,0 +1,307 @@
+{
+	"name": "pl_landing_claims",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_meta_claims",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_landing",
+						"type": "DatasetReference",
+						"parameters": {
+							"containerName": "landing",
+							"folderName": "claims",
+							"fileName": "claims.csv"
+						}
+					},
+					"fieldList": [
+						"exists",
+						"itemName"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_meta_claims",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@if(activity('get_meta_claims').output.exists,true,false )",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "cp_claims_copy1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_landing",
+									"type": "DatasetReference",
+									"parameters": {
+										"containerName": "landing",
+										"folderName": "claims",
+										"fileName": {
+											"value": "@activity('get_meta_claims').output.itemName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_bronze",
+									"type": "DatasetReference",
+									"parameters": {
+										"containerName": "bronze",
+										"directoryName": "claims",
+										"fileName": {
+											"value": "@activity('get_meta_claims').output.itemName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete_Claims",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "archive_claims",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_landing",
+									"type": "DatasetReference",
+									"parameters": {
+										"containerName": "landing",
+										"folderName": "claims",
+										"fileName": {
+											"value": "@activity('get_meta_claims').output.itemName",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Stored procedure1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "cp_claims_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_insert_load_logs]",
+								"storedProcedureParameters": {
+									"numberofrowscopied": {
+										"value": {
+											"value": "@activity('cp_claims_copy1').output.rowsCopied",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"tablename": {
+										"value": {
+											"value": "@replace(activity('get_meta_claims').output.itemName, '.csv', '')\r\n",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"watermarkcolumnname": {
+										"value": {
+											"value": "null",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_emr_sql",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "archive_claims",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Stored procedure1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_landing",
+									"type": "DatasetReference",
+									"parameters": {
+										"containerName": "landing",
+										"folderName": "claims",
+										"fileName": {
+											"value": "@activity('get_meta_claims').output.itemName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_landing",
+									"type": "DatasetReference",
+									"parameters": {
+										"containerName": "landing",
+										"folderName": "archive",
+										"fileName": {
+											"value": "@concat(\r\n  first(split(activity('get_meta_claims').output.itemName, '.')),\r\n  '_',\r\n  formatDateTime(utcNow(), 'yyyyMMdd'),\r\n  '.csv'\r\n)\r\n",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}
