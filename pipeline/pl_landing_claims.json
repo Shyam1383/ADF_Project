@@ -121,7 +121,7 @@
 										"containerName": "bronze",
 										"directoryName": "claims",
 										"fileName": {
-											"value": "split(activity('get_meta_claims').output.itemName, '.')[0]",
+											"value": "claims",
 											"type": "Expression"
 										}
 									}
