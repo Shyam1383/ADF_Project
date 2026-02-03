@@ -1,0 +1,28 @@
+{
+	"name": "pl_gold_facts_and_dims",
+	"properties": {
+		"activities": [
+			{
+				"name": "Notebook_Gold_Load",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/arunmandle8317@gmail.com/HealthCare/Gold_Facts_and_Dims"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
