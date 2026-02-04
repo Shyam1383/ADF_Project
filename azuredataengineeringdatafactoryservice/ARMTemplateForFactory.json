@@ -223,6 +223,64 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_BronzeLayerLoad')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Execute Claims",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_landing_claims",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Execute EMR",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Execute Claims",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_On-Prem_EMR",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_landing_claims')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_On-Prem_EMR')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_GoldLayer')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -279,52 +337,11 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Execute EMR",
+						"name": "Execute_Silver_Load",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Execute Claims",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "pl_On-Prem_EMR",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "Execute Claims",
-						"type": "ExecutePipeline",
-						"dependsOn": [],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "pl_landing_claims",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "Execute_silver_CDC",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "Execute EMR",
+								"activity": "Execute_Bronze_Load",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -344,11 +361,11 @@
 						}
 					},
 					{
-						"name": "Execute_gold_Facts_Dims",
+						"name": "Execute_Gold_Load",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Execute_silver_CDC",
+								"activity": "Execute_Silver_Load",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -366,6 +383,23 @@
 							"waitOnCompletion": true,
 							"parameters": {}
 						}
+					},
+					{
+						"name": "Execute_Bronze_Load",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_BronzeLayerLoad",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
 					}
 				],
 				"policy": {
@@ -374,10 +408,9 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pl_On-Prem_EMR')]",
-				"[concat(variables('factoryId'), '/pipelines/pl_landing_claims')]",
 				"[concat(variables('factoryId'), '/pipelines/pl_silver_Ingestion_CDC')]",
-				"[concat(variables('factoryId'), '/pipelines/pl_gold_facts_and_dims')]"
+				"[concat(variables('factoryId'), '/pipelines/pl_gold_facts_and_dims')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_BronzeLayerLoad')]"
 			]
 		},
 		{
