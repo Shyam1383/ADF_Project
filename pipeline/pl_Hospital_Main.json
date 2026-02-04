@@ -3,50 +3,11 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Execute EMR",
+				"name": "Execute_Silver_Load",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute Claims",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "pl_On-Prem_EMR",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true
-				}
-			},
-			{
-				"name": "Execute Claims",
-				"type": "ExecutePipeline",
-				"dependsOn": [],
-				"policy": {
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "pl_landing_claims",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true
-				}
-			},
-			{
-				"name": "Execute_silver_CDC",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Execute EMR",
+						"activity": "Execute_Bronze_Load",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -65,11 +26,11 @@
 				}
 			},
 			{
-				"name": "Execute_gold_Facts_Dims",
+				"name": "Execute_Gold_Load",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute_silver_CDC",
+						"activity": "Execute_Silver_Load",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -82,6 +43,22 @@
 				"typeProperties": {
 					"pipeline": {
 						"referenceName": "pl_gold_facts_and_dims",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute_Bronze_Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_BronzeLayerLoad",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
