@@ -2472,6 +2472,93 @@
 							"waitOnCompletion": true,
 							"parameters": {}
 						}
+					},
+					{
+						"name": "Send_Email_bronze",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Execute_Bronze_Load",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-16.northcentralus.logic.azure.com:443/workflows/146ccd2e375f43e1b7907ab199ac869c/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=FoQxJoqWRFGMbJmJ-Pwl2pC7GCGTxoAVaA5vaCeCNRg",
+							"body": {
+								"value": "{\n  \"pipeline_name\": \"@{pipeline().Pipeline}\",\n  \"run_id\": \"@{pipeline().RunId}\",\n  \"status\": \"@{activity('Execute_Bronze_Load').output.Status}\",\n  \"error\": \"@{activity('Execute_Bronze_Load').output.error.message}\"\n}",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Send_Email_silver",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Execute_Silver_Load",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-16.northcentralus.logic.azure.com:443/workflows/146ccd2e375f43e1b7907ab199ac869c/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=FoQxJoqWRFGMbJmJ-Pwl2pC7GCGTxoAVaA5vaCeCNRg",
+							"body": {
+								"value": "{\n  \"pipeline_name\": \"@{pipeline().Pipeline}\",\n  \"run_id\": \"@{pipeline().RunId}\",\n  \"status\": \"@{activity('Execute_Silver_Load').output.Status}\",\n  \"error\": \"@{activity('Execute_Silver_Load').output.error.message}\"\n}",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Send_Email_copy1_gold",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Execute_Gold_Load",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-16.northcentralus.logic.azure.com:443/workflows/146ccd2e375f43e1b7907ab199ac869c/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=FoQxJoqWRFGMbJmJ-Pwl2pC7GCGTxoAVaA5vaCeCNRg",
+							"body": {
+								"value": "{\n  \"pipeline_name\": \"@{pipeline().Pipeline}\",\n  \"run_id\": \"@{pipeline().RunId}\",\n  \"status\": \"@{activity('Execute_Silver_Load').output.Status}\",\n  \"error\": \"@{activity('Execute_Silver_Load').output.error.message}\"\n}",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"policy": {
